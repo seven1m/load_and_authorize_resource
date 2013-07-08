@@ -1,0 +1,7 @@
+.rspec
+.ruby-version
+.ruby-gemset
+.watchr
+Gemfile.lock
+.yardoc
+doc
