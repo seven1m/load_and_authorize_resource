@@ -62,3 +62,9 @@ end
 ```
 
 For parent resources, `current_user.can_read?(@parent)` is consulted. If false, then an `ActionController::ParameterMissing` error is raised.
+
+## Author
+
+Made with ❤ by [Tim Morgan](http://timmorgan.org).
+
+Licensed under MIT license. Please use it, fork it, make it more awesome.
