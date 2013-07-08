@@ -1,14 +1,10 @@
 require 'active_support/concern'
 
-unless defined?(ActionController::ParameterMissing)
-  module ActionController
-    class ParameterMissing < KeyError # present in Rails 4
-    end
-  end
-end
-
 module LoadAndAuthorizeResource
   extend ActiveSupport::Concern
+
+  class ParameterMissing < KeyError; end
+  class AccessDenied < StandardError; end
 
   METHOD_TO_ACTION_NAMES = {
     'show'    => 'read',
@@ -52,7 +48,7 @@ module LoadAndAuthorizeResource
     #
     # If we've exhausted our list of potential parent resources without
     # seeing the needed parameter (:person_id or :group_id), then a
-    # ActionController::ParameterMissing error is raised.
+    # LoadAndAuthorizeResource::ParameterMissing error is raised.
     #
     # Note: load_parent assumes you've only nested your route a single
     # layer deep, e.g. /parents/1/children/2
@@ -213,7 +209,7 @@ module LoadAndAuthorizeResource
   # perform any authorization check.
   def authorize_parent
     if not @parent and not self.class.nested_resource_options[:auth][:options][:shallow]
-      raise ActionController::ParameterMissing.new('parent resource not found')
+      raise ParameterMissing.new('parent resource not found')
     end
     if @parent
       authorize_resource(@parent, :read)
@@ -227,7 +223,7 @@ module LoadAndAuthorizeResource
     action ||= METHOD_TO_ACTION_NAMES[params[:action].to_s]
     raise ArgumentError unless resource and action
     unless current_user.send("can_#{action}?", resource)
-      raise ActiveResource::ForbiddenAccess.new("#{current_user} cannot #{action} #{resource}")
+      raise AccessDenied.new("#{current_user} cannot #{action} #{resource}")
     end
   end
 
@@ -235,7 +231,7 @@ module LoadAndAuthorizeResource
   def verify_shallow_route!
     return if self.class.nested_resource_options[:load][:options][:shallow]
     expected = self.class.nested_resource_options[:load][:resources].map { |n| ":#{n}_id" }
-    raise ActionController::ParameterMissing.new(
+    raise ParameterMissing.new(
       "must supply one of #{expected.join(', ')}"
     )
   end

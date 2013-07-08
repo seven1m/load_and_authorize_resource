@@ -45,7 +45,7 @@ describe NotesController, type: :controller do
 
     context 'when called without the parent id' do
       it 'raise exception' do
-        expect { get :index }.to raise_error(ActionController::ParameterMissing)
+        expect { get :index }.to raise_error(LoadAndAuthorizeResource::ParameterMissing)
       end
     end
   end
@@ -112,7 +112,7 @@ describe NotesController, type: :controller do
         it 'raise missing parameter exception' do
           expect {
             get :index, group_id: @group.id
-          }.to raise_error(ActionController::ParameterMissing)
+          }.to raise_error(LoadAndAuthorizeResource::ParameterMissing)
         end
       end
 
@@ -127,7 +127,7 @@ describe NotesController, type: :controller do
         it 'raise unauthorized exception' do
           expect {
             get :index
-          }.to raise_error(ActiveResource::ForbiddenAccess)
+          }.to raise_error(LoadAndAuthorizeResource::AccessDenied)
         end
       end
 

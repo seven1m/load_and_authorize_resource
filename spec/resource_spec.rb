@@ -74,7 +74,7 @@ describe NotesController, type: :controller do
         it 'raise exception' do
           expect {
             get :show, id: @note.id
-          }.to raise_error(ActiveResource::ForbiddenAccess)
+          }.to raise_error(LoadAndAuthorizeResource::AccessDenied)
         end
 
         it 'checks can_read? on user' do
@@ -87,7 +87,7 @@ describe NotesController, type: :controller do
         it 'raise exception' do
           expect {
             post :create
-          }.to raise_error(ActiveResource::ForbiddenAccess)
+          }.to raise_error(LoadAndAuthorizeResource::AccessDenied)
         end
 
         it 'checks can_create? on user' do

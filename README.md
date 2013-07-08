@@ -25,7 +25,7 @@ class NotesController < ApplicationController
 end
 ```
 
-For each controller action, `current_user.can_<action>?(@note)` is consulted. If false, then an `ActionController::ParameterMissing` error is raised.
+For each controller action, `current_user.can_<action>?(@note)` is consulted. If false, then an `LoadAndAuthorizeResoruce::AccessDenied` error is raised.
 
 This works very nicely along with the [Authority](https://github.com/nathanl/authority) gem.
 
@@ -61,7 +61,7 @@ class NotesController < ApplicationController
 end
 ```
 
-For parent resources, `current_user.can_read?(@parent)` is consulted. If false, then an `ActionController::ParameterMissing` error is raised.
+For parent resources, `current_user.can_read?(@parent)` is consulted. If false, then an `LoadAndAuthorizeResoruce::AccessDenied` error is raised.
 
 ## Author
 
