@@ -6,6 +6,12 @@ This was inspired heavily by functionality in the [CanCan](https://github.com/ry
 
 [Documentation](http://rubydoc.info/github/seven1m/load_and_authorize_resource/master/frames)
 
+## Mascot
+
+This is LAAR. He's a horse my daughter drew.
+
+![LAAR](https://raw.github.com/seven1m/load_and_authorize_resource/master/mascot.png)
+
 ## Assumptions
 
 This library assumes your app follows some (fairly common) conventions:
