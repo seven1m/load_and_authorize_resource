@@ -96,7 +96,7 @@ module LoadAndAuthorizeResource
     #       authorize_parent
     #     end
     #
-    # If `@parent` is not found, or calling `authorize_resource(@parent)` fails,
+    # If `@parent` is not found, or calling `current_user.can_read?(@parent)` fails,
     # an exception will be raised.
     #
     # If the parent resource is optional, and you only want to check authorization
@@ -143,7 +143,13 @@ module LoadAndAuthorizeResource
       define_scope_method
     end
 
-    # Checks authorization on resource.
+    # Checks authorization on resource by calling one of:
+    #
+    # * `current_user.can_read?(@note)`
+    # * `current_user.can_create?(@note)`
+    # * `current_user.can_update?(@note)`
+    # * `current_user.can_delete?(@note)`
+    #
     def authorize_resource(options={})
       unless options[:only] or options[:except]
         options.reverse_merge!(only: [:show, :new, :create, :edit, :update, :destroy])
@@ -151,6 +157,7 @@ module LoadAndAuthorizeResource
       before_filter :authorize_resource, options
     end
 
+    # A convenience method for calling both `load_resource` and `authorize_resource`
     def load_and_authorize_resource(options={})
       load_resource(options)
       authorize_resource(options)
@@ -158,9 +165,8 @@ module LoadAndAuthorizeResource
 
     protected
 
-    # Set the instance variable used to scope queries.
-    # The variable is named after the controller, e.g. if your controller
-    # is called `NotesController`, then the instance variable will be `@notes`.
+    # Defines a method with the same name as the resource (`notes` for the NotesController)
+    # that returns a scoped relation, either @parent.notes, or Note itself.
     def define_scope_method
       define_method(controller_name) do
         if @parent
@@ -188,6 +194,7 @@ module LoadAndAuthorizeResource
     verify_shallow_route! unless @parent
   end
 
+  # Loads/instantiates the resource object.
   def load_resource
     scope = send(controller_name)
     if ['new', 'create'].include?(params[:action].to_s)
@@ -216,8 +223,7 @@ module LoadAndAuthorizeResource
     end
   end
 
-  # Default authorization method compatible with the "Authorize" gem
-  # Override this method if you wish to use another means for authorization.
+  # Asks the current_user if he/she is authorized to perform the given action.
   def authorize_resource(resource=nil, action=nil)
     resource ||= instance_variable_get("@#{controller_name.singularize}")
     action ||= METHOD_TO_ACTION_NAMES[params[:action].to_s]
