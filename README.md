@@ -4,6 +4,8 @@ Auto-loads and authorizes resources in Rails 3 and up.
 
 This was inspired heavily by functionality in the [CanCan](https://github.com/ryanb/cancan) gem, but built to work mostly independent of any authorization library.
 
+[Documentation](http://rubydoc.info/github/seven1m/load_and_authorize_resource/master/frames)
+
 ## Assumptions
 
 This library assumes your app follows some (fairly common) conventions:
