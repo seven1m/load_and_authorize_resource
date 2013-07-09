@@ -2,7 +2,7 @@
 
 Auto-loads and authorizes resources in Rails 3 and up.
 
-This was inspired heavily by functionality in the [CanCan](https://github.com/ryanb/cancan) gem, but extracted to work mostly independent of any authorization library.
+This was inspired heavily by functionality in the [CanCan](https://github.com/ryanb/cancan) gem, but built to work mostly independent of any authorization library.
 
 ## Assumptions
 
