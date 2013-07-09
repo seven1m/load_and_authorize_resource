@@ -4,7 +4,7 @@ Gem::Specification.new do |s|
   s.author       = "Tim Morgan"
   s.email        = "tim@timmorgan.org"
   s.homepage     = "https://github.com/seven1m/load_and_authorize_resource"
-  s.summary      = "description goes here"
+  s.summary      = "Auto-loads and authorizes resources in your controllers in Rails 3 and up."
   s.files        = %w(README.md) + Dir['lib/**/*'].to_a
   s.require_path = "lib"
   s.has_rdoc     = true
