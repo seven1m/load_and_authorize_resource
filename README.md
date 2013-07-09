@@ -13,6 +13,24 @@ This library assumes your app follows some (fairly common) conventions:
 3. Your User model has methods like `can_read?`, `can_update?`, `can_delete?`, etc. (This works great with [Authority](https://github.com/nathanl/authority) gem, but naturally can work with any authorization library, given you/it defines those methods.)
 4. You have a method on your controller that returns the resource parameters, e.g. `note_params`. You're probably already doing this if you're using [StrongParameters](https://github.com/rails/strong_parameters) or Rails 4.
 
+## Installing
+
+Add to your Gemfile:
+
+```
+gem 'load_and_authorize_resource'
+```
+
+...and run `bundle install`.
+
+Then add the following to your ApplicationController:
+
+```ruby
+class ApplicationController < ActionController::Base
+  include LoadAndAuthorizeResource
+end
+```
+
 ## Loading and Authorizing the Resource
 
 ```ruby
