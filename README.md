@@ -34,7 +34,7 @@ class NotesController < ApplicationController
 end
 ```
 
-For each controller action, `current_user.can_<action>?(@note)` is consulted. If false, then an `LoadAndAuthorizeResoruce::AccessDenied` error is raised.
+For each controller action, `current_user.can_<action>?(@note)` is consulted. If false, then an `LoadAndAuthorizeResource::AccessDenied` error is raised.
 
 This works very nicely along with the [Authority](https://github.com/nathanl/authority) gem.
 
@@ -100,9 +100,9 @@ class NotesController < ApplicationController
 end
 ```
 
-For parent resources, `current_user.can_read?(@parent)` is consulted. If false, then an `LoadAndAuthorizeResoruce::AccessDenied` error is raised.
+For parent resources, `current_user.can_read?(@parent)` is consulted. If false, then an `LoadAndAuthorizeResource::AccessDenied` error is raised.
 
-If none of the parent IDs are present, e.g. `person_id` and `group_id` are both absent in `params`, then a `LoadAndAuthorizeResoruce::ParameterMissing` exception is raised.
+If none of the parent IDs are present, e.g. `person_id` and `group_id` are both absent in `params`, then a `LoadAndAuthorizeResource::ParameterMissing` exception is raised.
 
 ### Shallow Routes
 
@@ -126,7 +126,7 @@ You are encouraged to rescue the two possible exceptions in your ApplicationCont
 
 ```ruby
 class ApplicationController < ActionController::Base
-  rescue_from 'LoadAndAuthorizeResoruce::AccessDenied', 'LoadAndAuthorizeResoruce::ParameterMissing' do |exception|
+  rescue_from 'LoadAndAuthorizeResource::AccessDenied', 'LoadAndAuthorizeResource::ParameterMissing' do |exception|
     render text: 'not authorized', status: :forbidden
   end
 end
