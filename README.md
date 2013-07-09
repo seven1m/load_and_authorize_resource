@@ -4,6 +4,15 @@ Auto-loads and authorizes resources in Rails 3 and up.
 
 This was inspired heavily by functionality in the [CanCan](https://github.com/ryanb/cancan) gem, but extracted to work mostly independent of any authorization library.
 
+## Assumptions
+
+This library assumes your app follows some (fairly common) conventions:
+
+1. Your controller name matches your model name, e.g. "NotesController" for the "Note" model.
+2. You have a method on your (Application)Controller called `current_user` that returns your User model.
+3. Your User model has methods like `can_read?`, `can_update?`, `can_delete?`, etc. (This works great with [Authority](https://github.com/nathanl/authority) gem, but naturally can work with any authorization library, given you/it defines those methods.)
+4. You have a method on your controller that returns the resource parameters, e.g. `note_params`. You're probably already doing this if you're using [StrongParameters](https://github.com/rails/strong_parameters) or Rails 4.
+
 ## Loading and Authorizing the Resource
 
 ```ruby
@@ -57,6 +66,36 @@ class NotesController < ApplicationController
     # @parent = @person = Person.find(1)
     # for /groups/1/notes/2
     # @parent = @group = Group.find(1)
+  end
+end
+```
+
+Further, a private method is defined with the name of the resource that returns an ActiveRecord::Relation scoped to the `@parent` (if present). It basically looks like this:
+
+```ruby
+class NotesController < ApplicationController
+
+  private
+
+  def notes
+    if @parent
+      @parent.notes.scoped
+    else
+      Note.scoped
+    end
+  end
+end
+```
+
+This allows you to easily access the set of notes that make sense given the URL, e.g.:
+
+
+```ruby
+class NotesController < ApplicationController
+  def index
+    # notes is basically equivalent to @group.notes, @person.notes, or just Note,
+    # for the urls /groups/1/notes, /people/1/notes, or /notes (respectively).
+    @notes = notes.order(:created_at).page(params[:page])
   end
 end
 ```
