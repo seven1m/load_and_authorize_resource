@@ -25,15 +25,15 @@ describe NotesController, type: :controller do
         get :index, group_id: @group.id
       end
 
-      it 'set parent resource by name' do
+      it 'sets the parent resource by name' do
         expect(assigns[:group]).to eq(@group)
       end
 
-      it 'set parent resource under @parent' do
+      it 'sets the parent resource under @parent' do
         expect(assigns[:parent]).to eq(@group)
       end
 
-      it 'define child accessor' do
+      it 'defines a child accessor' do
         result = @controller.send(:notes)
         expect(@group).to have_received(:notes)
         # AR internals here, yikes
@@ -44,7 +44,7 @@ describe NotesController, type: :controller do
     end
 
     context 'when called without the parent id' do
-      it 'raise exception' do
+      it 'raises an exception' do
         expect { get :index }.to raise_error(LoadAndAuthorizeResource::ParameterMissing)
       end
     end
@@ -60,7 +60,7 @@ describe NotesController, type: :controller do
         get :index, group_id: @group.id
       end
 
-      it 'set parent resource' do
+      it 'sets the parent resource' do
         expect(assigns[:group]).to eq(@group)
       end
     end
@@ -70,7 +70,7 @@ describe NotesController, type: :controller do
         get :index, person_id: @person.id
       end
 
-      it 'set parent resource' do
+      it 'sets the parent resource' do
         expect(assigns[:person]).to eq(@person)
       end
     end
@@ -86,12 +86,12 @@ describe NotesController, type: :controller do
         get :index
       end
 
-      it 'load no parent' do
+      it 'loads no parent' do
         expect(assigns[:group]).to be_nil
         expect(assigns[:person]).to be_nil
       end
 
-      it 'define child accessor' do
+      it 'defines a child accessor' do
         @controller.send(:notes)
         expect(Note).to have_received(:scoped)
       end
@@ -109,7 +109,7 @@ describe NotesController, type: :controller do
 
     context 'when called with the parent id' do
       context 'parent not found' do
-        it 'raise missing parameter exception' do
+        it 'raises a missing parameter exception' do
           expect {
             get :index, group_id: @group.id
           }.to raise_error(LoadAndAuthorizeResource::ParameterMissing)
@@ -124,7 +124,7 @@ describe NotesController, type: :controller do
           controller.define_singleton_method(:current_user) { user }
         end
 
-        it 'raise unauthorized exception' do
+        it 'raises an unauthorized exception' do
           expect {
             get :index
           }.to raise_error(LoadAndAuthorizeResource::AccessDenied)
@@ -143,7 +143,7 @@ describe NotesController, type: :controller do
           get :index
         end
 
-        it 'do nothing' do
+        it 'does nothing' do
           expect(response).to be_success
         end
       end
@@ -155,22 +155,22 @@ describe NotesController, type: :controller do
       load_and_authorize_parent :group
     end
 
-    it 'setup load resources' do
+    it 'sets up load resources' do
       resources = controller.class.nested_resource_options[:load][:resources]
       expect(resources).to eq([:group])
     end
 
-    it 'setup load options' do
+    it 'sets up load options' do
       options = controller.class.nested_resource_options[:load][:options]
       expect(options).to eq({shallow: nil})
     end
 
-    it 'setup auth options' do
+    it 'sets up auth options' do
       options = controller.class.nested_resource_options[:auth][:options]
       expect(options).to eq({shallow: nil})
     end
 
-    it 'set before filters' do
+    it 'sets before filters' do
       filters = controller.class._process_action_callbacks.map(&:filter)
       assert_equal [:load_parent, :authorize_parent], filters
     end

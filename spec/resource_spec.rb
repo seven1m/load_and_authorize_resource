@@ -32,7 +32,7 @@ describe NotesController, type: :controller do
         get :show, id: @note.id
       end
 
-      it 'find resource by id' do
+      it 'finds the resource by id' do
         expect(assigns[:note]).to eq(@note)
       end
     end
@@ -43,11 +43,11 @@ describe NotesController, type: :controller do
         @note = assigns[:note]
       end
 
-      it 'instantiate a new resource' do
+      it 'instantiates a new resource' do
         expect(@relation).to have_received(:new)
       end
 
-      it 'set attributes on new resource' do
+      it 'sets attributes on new resource' do
         expect(@note).to have_received(:attributes=).with({title: 'test'})
       end
     end
@@ -71,20 +71,20 @@ describe NotesController, type: :controller do
       end
 
       context 'when show is called' do
-        it 'raise exception' do
+        it 'raises an exception' do
           expect {
             get :show, id: @note.id
           }.to raise_error(LoadAndAuthorizeResource::AccessDenied)
         end
 
-        it 'checks can_read? on user' do
+        it 'checkss can_read? on user' do
           get :show, id: @note.id rescue nil
           expect(@user).to have_received(:can_read?)
         end
       end
 
       context 'when create is called' do
-        it 'raise exception' do
+        it 'raises an exception' do
           expect {
             post :create
           }.to raise_error(LoadAndAuthorizeResource::AccessDenied)
