@@ -3,7 +3,7 @@ class NotesController < ApplicationController
     define_method(m) { render text: m }
   end
 
-  # force name on all anonymous subclasses under test below
+  # force name on all anonymous subclasses under test
   def self.controller_name
     'notes'
   end

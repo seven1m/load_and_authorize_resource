@@ -64,6 +64,27 @@ describe NotesController, type: :controller do
       controller.define_singleton_method(:get_note) { @note = note }
     end
 
+    context 'when a non-standard action is called' do
+      controller do
+        authorize_resource only: :burn
+
+        def burn
+          render text: 'rotated'
+        end
+      end
+
+      before do
+        routes.draw { get 'burn' => 'anonymous#burn' }
+        user = @user = double('user', can_burn?: true)
+        controller.define_singleton_method(:current_user) { user }
+        get :burn, id: @note.id
+      end
+
+      it 'calls can_<action>? on the user' do
+        expect(@user).to have_received(:can_burn?).with(@note)
+      end
+    end
+
     context 'user is not authorized' do
       before do
         user = @user = double('user', can_read?: false, can_create?: false)

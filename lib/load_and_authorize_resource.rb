@@ -6,6 +6,12 @@ module LoadAndAuthorizeResource
   class ParameterMissing < KeyError; end
   class AccessDenied < StandardError; end
 
+  # Controller method names to action verb mapping
+  #
+  # Other controller methods will use the name of the action, e.g.
+  # if your controller action is `rotate`, then it will be assumed
+  # to be your verb too: `current_user.can_rotate?(resource)`
+  #
   METHOD_TO_ACTION_NAMES = {
     'show'    => 'read',
     'new'     => 'create',
@@ -226,7 +232,7 @@ module LoadAndAuthorizeResource
   # Asks the current_user if he/she is authorized to perform the given action.
   def authorize_resource(resource=nil, action=nil)
     resource ||= instance_variable_get("@#{controller_name.singularize}")
-    action ||= METHOD_TO_ACTION_NAMES[params[:action].to_s]
+    action ||= METHOD_TO_ACTION_NAMES[params[:action].to_s] || params[:action].presence
     raise ArgumentError unless resource and action
     unless current_user.send("can_#{action}?", resource)
       raise AccessDenied.new("#{current_user} cannot #{action} #{resource}")

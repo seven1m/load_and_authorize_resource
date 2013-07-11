@@ -14,10 +14,6 @@ Dir[File.expand_path('../support/**/*.rb', __FILE__)].sort.each { |f| require f 
 
 class FakeApplication < Rails::Application; end
 
-FakeApplication.routes.draw do
-  match ':controller(/:action)'
-end
-
 Rails.application = FakeApplication
 
 class ActionController::Base
