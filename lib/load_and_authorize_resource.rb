@@ -84,6 +84,11 @@ module LoadAndAuthorizeResource
     #       end
     #     end
     #
+    # @param names [Array<String, Symbol>] one or more names of resources in lower case
+    # @option options [Boolean] :shallow set to true to allow non-nested routes, e.g. `/notes` in addition to `/people/1/notes`
+    # @option options [Boolean] :except controller actions to ignore when applying this filter
+    # @option options [Boolean] :only controller actions to apply this filter
+    # @option options [String, Symbol] :children name of child accessor (inferred from controller name, e.g. "notes" for the NotesController)
     def load_parent(*names)
       options = names.extract_options!.dup
       self.nested_resource_options ||= {}
@@ -112,6 +117,9 @@ module LoadAndAuthorizeResource
     #       authorize_parent shallow: true
     #     end
     #
+    # @option options [Boolean] :shallow set to true to allow non-nested routes, e.g. `/notes` in addition to `/people/1/notes`
+    # @option options [Boolean] :except controller actions to ignore when applying this filter
+    # @option options [Boolean] :only controller actions to apply this filter
     def authorize_parent(options={})
       options = options.dup
       self.nested_resource_options ||= {}
@@ -142,6 +150,9 @@ module LoadAndAuthorizeResource
     # new resource. For `create`, instantiates and
     # sets attributes to `<resource>_params`.
     #
+    # @option options [Boolean] :except controller actions to ignore when applying this filter
+    # @option options [Boolean] :only controller actions to apply this filter (default is show, new, create, edit, update, and destroy)
+    # @option options [String, Symbol] :children name of child accessor (inferred from controller name, e.g. "notes" for the NotesController)
     def load_resource(options={})
       options = options.dup
       unless options[:only] or options[:except]
@@ -151,13 +162,12 @@ module LoadAndAuthorizeResource
       before_filter :load_resource, options
     end
 
-    # Checks authorization on resource by calling one of:
+    # Checks authorization on the already-loaded resource.
     #
-    # * `current_user.can_read?(@note)`
-    # * `current_user.can_create?(@note)`
-    # * `current_user.can_update?(@note)`
-    # * `current_user.can_delete?(@note)`
+    # This method calls `current_user.can_<action>?(@resource)` and raises an exception if the answer is 'no'.
     #
+    # @option options [Boolean] :except controller actions to ignore when applying this filter
+    # @option options [Boolean] :only controller actions to apply this filter
     def authorize_resource(options={})
       options = options.dup
       unless options[:only] or options[:except]
