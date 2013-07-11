@@ -9,7 +9,7 @@ describe NotesController, type: :controller do
   before do
     @relation = double('relation', scoped: 'scoped relation')
     Note.stub(:scoped).and_return(@relation)
-    @group = double('group', id: 1, notes: @relation)
+    @group = double('group', id: 1, notes: @relation, people: @relation)
     Group.stub(:find).and_return(@group)
     @person = double('person', id: 1, notes: @relation)
     Person.stub(:find).and_return(@person)
@@ -94,6 +94,27 @@ describe NotesController, type: :controller do
       it 'defines a child accessor' do
         @controller.send(:notes)
         expect(Note).to have_received(:scoped)
+      end
+    end
+  end
+
+  context 'load_parent with children option' do
+    controller do
+      load_parent :group, children: :people
+    end
+
+    context 'when called with the parent id' do
+      before do
+        get :index, group_id: @group.id
+      end
+
+      it 'sets the parent resource' do
+        expect(assigns[:group]).to eq(@group)
+      end
+
+      it 'defines the specified child accessor' do
+        @controller.send(:people)
+        expect(@group).to have_received(:people)
       end
     end
   end

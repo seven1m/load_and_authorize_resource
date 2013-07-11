@@ -91,8 +91,8 @@ module LoadAndAuthorizeResource
         options: {shallow: options.delete(:shallow)},
         resources: names
       }
+      define_scope_method(options.delete(:children))
       before_filter :load_parent, options
-      define_scope_method
     end
 
     # Macro sets a before filter to authorize the parent resource.
@@ -113,6 +113,7 @@ module LoadAndAuthorizeResource
     #     end
     #
     def authorize_parent(options={})
+      options = options.dup
       self.nested_resource_options ||= {}
       self.nested_resource_options[:auth] = {
         options: {shallow: options.delete(:shallow)}
@@ -142,11 +143,12 @@ module LoadAndAuthorizeResource
     # sets attributes to `<resource>_params`.
     #
     def load_resource(options={})
+      options = options.dup
       unless options[:only] or options[:except]
         options.reverse_merge!(only: [:show, :new, :create, :edit, :update, :destroy])
       end
+      define_scope_method(options.delete(:children))
       before_filter :load_resource, options
-      define_scope_method
     end
 
     # Checks authorization on resource by calling one of:
@@ -157,6 +159,7 @@ module LoadAndAuthorizeResource
     # * `current_user.can_delete?(@note)`
     #
     def authorize_resource(options={})
+      options = options.dup
       unless options[:only] or options[:except]
         options.reverse_merge!(only: [:show, :new, :create, :edit, :update, :destroy])
       end
@@ -169,19 +172,34 @@ module LoadAndAuthorizeResource
       authorize_resource(options)
     end
 
+    # Returns the name of the resource, in singular form, e.g. "note"
+    #
+    # By default, this is simply `controller_name.singularize`.
+    def resource_name
+      controller_name.singularize
+    end
+
+    # Returns the name of the resource, in plural form, e.g. "notes"
+    #
+    # By default, this is simply the `controller_name`.
+    def resource_accessor_name
+      controller_name
+    end
+
     protected
 
     # Defines a method with the same name as the resource (`notes` for the NotesController)
     # that returns a scoped relation, either @parent.notes, or Note itself.
-    def define_scope_method
-      define_method(controller_name) do
+    def define_scope_method(name=nil)
+      name ||= resource_accessor_name
+      define_method(name) do
         if @parent
-          @parent.send(controller_name).scoped
+          @parent.send(name).scoped
         else
-          controller_name.classify.constantize.scoped
+          name.classify.constantize.scoped
         end
       end
-      private(controller_name)
+      private(name)
     end
   end
 
@@ -202,11 +220,11 @@ module LoadAndAuthorizeResource
 
   # Loads/instantiates the resource object.
   def load_resource
-    scope = send(controller_name)
+    scope = send(resource_accessor_name)
     if ['new', 'create'].include?(params[:action].to_s)
       resource = scope.new
       if 'create' == params[:action].to_s
-        resource.attributes = send("#{controller_name.singularize}_params")
+        resource.attributes = send("#{resource_name}_params")
       end
     elsif params[:id]
       resource = scope.find(params[:id])
@@ -231,7 +249,7 @@ module LoadAndAuthorizeResource
 
   # Asks the current_user if he/she is authorized to perform the given action.
   def authorize_resource(resource=nil, action=nil)
-    resource ||= instance_variable_get("@#{controller_name.singularize}")
+    resource ||= instance_variable_get("@#{resource_name}")
     action ||= METHOD_TO_ACTION_NAMES[params[:action].to_s] || params[:action].presence
     raise ArgumentError unless resource and action
     unless current_user.send("can_#{action}?", resource)
@@ -249,6 +267,10 @@ module LoadAndAuthorizeResource
   end
 
   def resource_name
-    controller_name.singularize
+    self.class.resource_name
+  end
+
+  def resource_accessor_name
+    self.class.resource_accessor_name
   end
 end
