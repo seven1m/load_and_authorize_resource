@@ -54,7 +54,7 @@ module LoadAndAuthorizeResource
     #
     # If we've exhausted our list of potential parent resources without
     # seeing the needed parameter (:person_id or :group_id), then a
-    # LoadAndAuthorizeResource::ParameterMissing error is raised.
+    # {LoadAndAuthorizeResource::ParameterMissing} error is raised.
     #
     # Note: load_parent assumes you've only nested your route a single
     # layer deep, e.g. /parents/1/children/2
@@ -74,7 +74,7 @@ module LoadAndAuthorizeResource
     # optional and some not:
     #
     #     class NotesController < ApplicationController
-    #       load_parent :person, group, optional: true
+    #       load_parent :person, :group, optional: true
     #       load_parent :book
     #     end
     #
@@ -128,7 +128,7 @@ module LoadAndAuthorizeResource
     #     end
     #
     # If `@group` is not found, or calling `current_user.can_read?(@group)` fails,
-    # an exception will be raised.
+    # an {LoadAndAuthorizeResource::AccessDenied} exception will be raised.
     #
     # If the parent resource is optional, and you only want to check authorization
     # if it is set, you can set the `:shallow` option to `true`:
@@ -162,12 +162,9 @@ module LoadAndAuthorizeResource
     #       load_resource
     #     end
     #
-    # ...automatically finds the note for actions
-    # `show`, `edit`, `update`, and `destroy`.
+    # ...automatically finds the note for actions `show`, `edit`, `update`, and `destroy`.
     #
-    # For the `new` action, simply instantiates a
-    # new resource. For `create`, instantiates and
-    # sets attributes to `<resource>_params`.
+    # For the `new` action, simply instantiates a new resource. For `create`, instantiates and sets attributes to `<resource>_params`.
     #
     # @option options [Boolean] :except controller actions to ignore when applying this filter
     # @option options [Boolean] :only controller actions to apply this filter (default is show, new, create, edit, update, and destroy)
@@ -184,7 +181,7 @@ module LoadAndAuthorizeResource
 
     # Checks authorization on the already-loaded resource.
     #
-    # This method calls `current_user.can_<action>?(@resource)` and raises an exception if the answer is 'no'.
+    # This method calls `current_user.can_<action>?(@resource)` and raises an {LoadAndAuthorizeResource::AccessDenied} exception if the answer is 'no'.
     #
     # @option options [Boolean] :except controller actions to ignore when applying this filter
     # @option options [Boolean] :only controller actions to apply this filter
