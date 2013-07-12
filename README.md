@@ -100,7 +100,9 @@ end
 
 If you don't wish to authorize, or if you wish to do the loading yourself, you can just call `load_parent` and/or `authorize_parent`. Also, each macro accepts the normal before_filter options such as `:only` and `:except` if you wish to only apply the filters to certain actions.
 
-Further, a private method is defined with the name of the resource that returns an ActiveRecord::Relation scoped to the `@parent` (if present). It basically looks like this:
+### Accessing Children
+
+When you setup to load a parent resoure, a private method is defined with the name of the child resource that returns an ActiveRecord::Relation scoped to the `@parent` (if present). It basically looks like this:
 
 ```ruby
 class NotesController < ApplicationController
@@ -108,9 +110,9 @@ class NotesController < ApplicationController
   private
 
   def notes
-    if @parent
-      @parent.notes.scoped
-    else
+    if @person
+      @person.notes.scoped
+    elsif !required(:parent)
       Note.scoped
     end
   end
@@ -134,13 +136,13 @@ For parent resources, `current_user.can_read?(@parent)` is consulted. If false, 
 
 If none of the parent IDs are present, e.g. `person_id` and `group_id` are both absent in `params`, then a `LoadAndAuthorizeResource::ParameterMissing` exception is raised.
 
-### Shallow Routes
+### Shallow (Optional) Routes
 
-You can make the parent loading and authorization optional by setting the `shallow` option:
+You can make the parent loading and authorization optional by making it `optional`:
 
 ```ruby
 class NotesController < ApplicationController
-  load_and_authorize_parent :person, :group, shallow: true
+  load_and_authorize_parent :person, :group, optional: true
 end
 ```
 

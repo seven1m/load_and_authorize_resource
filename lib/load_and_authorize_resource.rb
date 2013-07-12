@@ -50,7 +50,7 @@ module LoadAndAuthorizeResource
     #
     # 1. look for `params[:person_id]`
     # 2. if present, call `Person.find(params[:person_id])`
-    # 3. set @person and @parent
+    # 3. set @person
     #
     # If we've exhausted our list of potential parent resources without
     # seeing the needed parameter (:person_id or :group_id), then a
@@ -68,71 +68,90 @@ module LoadAndAuthorizeResource
     #       load_parent :person, :group, shallow: true
     #     end
     #
+    # The `:shallow` option is aliased to `:optional` in cases where it
+    # sense to think about parent resources that way. Further, you can
+    # call the macro more than once should you want to make some
+    # optional and some not:
+    #
+    #     class NotesController < ApplicationController
+    #       load_parent :person, group, optional: true
+    #       load_parent :book
+    #     end
+    #
     # Additionally, a private method is defined with the same name as
-    # the resource. The method looks basically like this:
+    # the resource. The method looks basically like this (if you were
+    # to write it yourself):
     #
     #     class NotesController < ApplicationController
     #
     #       private
     #
     #       def notes
-    #         if @parent
-    #           @parent.notes.scoped
-    #         else
+    #         if @person
+    #           @person.notes.scoped
+    #         elsif not required(:person)
     #           Note.scoped
     #         end
     #       end
     #     end
     #
+    # You can change the name of this accessor if it is not the same
+    # as the resource this controller represents:
+    #
+    #     class NotesController < ApplicationController
+    #       load_parent :group, children: :people
+    #     end
+    #
+    # This will create a private method called "people" that either returns
+    # `@group.people.scoped` or Person.scoped (only if @group is optional).
+    #
     # @param names [Array<String, Symbol>] one or more names of resources in lower case
-    # @option options [Boolean] :shallow set to true to allow non-nested routes, e.g. `/notes` in addition to `/people/1/notes`
+    # @option options [Boolean] :optional set to true to allow non-nested routes, e.g. `/notes` in addition to `/people/1/notes`
+    # @option options [Boolean] :shallow (alias for :optional)
     # @option options [Boolean] :except controller actions to ignore when applying this filter
     # @option options [Boolean] :only controller actions to apply this filter
     # @option options [String, Symbol] :children name of child accessor (inferred from controller name, e.g. "notes" for the NotesController)
+    #
     def load_parent(*names)
       options = names.extract_options!.dup
-      self.nested_resource_options ||= {}
-      self.nested_resource_options[:load] = {
-        options: {shallow: options.delete(:shallow)},
-        resources: names
-      }
-      define_scope_method(options.delete(:children))
+      required = !(options.delete(:shallow) || options.delete(:optional))
+      save_nested_resource_options(:load, names, required)
+      define_scope_method(names, options.delete(:children))
       before_filter :load_parent, options
     end
 
     # Macro sets a before filter to authorize the parent resource.
-    # Assumes there is a `@parent` variable.
+    # Assumes ther resource is already set (in a before filter).
     #
     #     class NotesController < ApplicationController
-    #       authorize_parent
+    #       authorize_parent :group
     #     end
     #
-    # If `@parent` is not found, or calling `current_user.can_read?(@parent)` fails,
+    # If `@group` is not found, or calling `current_user.can_read?(@group)` fails,
     # an exception will be raised.
     #
     # If the parent resource is optional, and you only want to check authorization
     # if it is set, you can set the `:shallow` option to `true`:
     #
     #     class NotesController < ApplicationController
-    #       authorize_parent shallow: true
+    #       authorize_parent :group, shallow: true
     #     end
     #
     # @option options [Boolean] :shallow set to true to allow non-nested routes, e.g. `/notes` in addition to `/people/1/notes`
     # @option options [Boolean] :except controller actions to ignore when applying this filter
     # @option options [Boolean] :only controller actions to apply this filter
-    def authorize_parent(options={})
-      options = options.dup
-      self.nested_resource_options ||= {}
-      self.nested_resource_options[:auth] = {
-        options: {shallow: options.delete(:shallow)}
-      }
+    #
+    def authorize_parent(*names)
+      options = names.extract_options!.dup
+      required = !(options.delete(:shallow) || options.delete(:optional))
+      save_nested_resource_options(:auth, names, required)
       before_filter :authorize_parent, options
     end
 
     # A convenience method for calling both `load_parent` and `authorize_parent`
     def load_and_authorize_parent(*names)
       load_parent(*names)
-      authorize_parent(names.extract_options!)
+      authorize_parent(*names)
     end
 
     # Load the resource and set to an instance variable.
@@ -153,12 +172,13 @@ module LoadAndAuthorizeResource
     # @option options [Boolean] :except controller actions to ignore when applying this filter
     # @option options [Boolean] :only controller actions to apply this filter (default is show, new, create, edit, update, and destroy)
     # @option options [String, Symbol] :children name of child accessor (inferred from controller name, e.g. "notes" for the NotesController)
+    #
     def load_resource(options={})
       options = options.dup
       unless options[:only] or options[:except]
         options.reverse_merge!(only: [:show, :new, :create, :edit, :update, :destroy])
       end
-      define_scope_method(options.delete(:children))
+      define_scope_method([], options.delete(:children))
       before_filter :load_resource, options
     end
 
@@ -168,6 +188,7 @@ module LoadAndAuthorizeResource
     #
     # @option options [Boolean] :except controller actions to ignore when applying this filter
     # @option options [Boolean] :only controller actions to apply this filter
+    #
     def authorize_resource(options={})
       options = options.dup
       unless options[:only] or options[:except]
@@ -185,6 +206,7 @@ module LoadAndAuthorizeResource
     # Returns the name of the resource, in singular form, e.g. "note"
     #
     # By default, this is simply `controller_name.singularize`.
+    #
     def resource_name
       controller_name.singularize
     end
@@ -192,6 +214,7 @@ module LoadAndAuthorizeResource
     # Returns the name of the resource, in plural form, e.g. "notes"
     #
     # By default, this is simply the `controller_name`.
+    #
     def resource_accessor_name
       controller_name
     end
@@ -200,16 +223,30 @@ module LoadAndAuthorizeResource
 
     # Defines a method with the same name as the resource (`notes` for the NotesController)
     # that returns a scoped relation, either @parent.notes, or Note itself.
-    def define_scope_method(name=nil)
+    def define_scope_method(parents, name=nil)
       name ||= resource_accessor_name
-      define_method(name) do
-        if @parent
-          @parent.send(name).scoped
-        else
-          name.classify.constantize.scoped
+      self.nested_resource_options ||= {}
+      self.nested_resource_options[:accessors] ||= []
+      unless self.nested_resource_options[:accessors].include?(name)
+        self.nested_resource_options[:accessors] << name
+        define_method(name) do
+          parents.each do |parent|
+            if resource = instance_variable_get("@#{parent}")
+              return resource.send(name).scoped
+            end
+          end
+          name.to_s.classify.constantize.scoped
         end
+        private(name)
       end
-      private(name)
+    end
+
+    # Stores groups of names and options (required) on a class attribute on the controller
+    def save_nested_resource_options(key, names, required)
+      self.nested_resource_options ||= {}
+      self.nested_resource_options[key] ||= []
+      group = {resources: names, required: required}
+      self.nested_resource_options[key] << group
     end
   end
 
@@ -218,14 +255,15 @@ module LoadAndAuthorizeResource
   # Loop over each parent resource, and try to find a matching parameter.
   # Then lookup the resource using the supplied id.
   def load_parent
-    keys = self.class.nested_resource_options[:load][:resources]
-    parent = keys.detect do |key|
-      if id = params["#{key}_id".to_sym]
-        @parent = key.to_s.classify.constantize.find(id)
-        instance_variable_set "@#{key}", @parent
+    self.class.nested_resource_options[:load].each do |group|
+      parent = group[:resources].detect do |key|
+        if id = params["#{key}_id".to_sym]
+          parent = key.to_s.classify.constantize.find(id)
+          instance_variable_set "@#{key}", parent
+        end
       end
+      verify_shallow_route!(group) unless parent
     end
-    verify_shallow_route! unless @parent
   end
 
   # Loads/instantiates the resource object.
@@ -246,14 +284,19 @@ module LoadAndAuthorizeResource
 
   # Verify the current user is authorized to view the parent resource.
   # Assumes that `load_parent` has already been run and that `@parent` is set.
-  # If `@parent` is empty and the `shallow` option is enabled, don't
-  # perform any authorization check.
+  # If `@parent` is empty and the parent is optional, don't perform any
+  # authorization check.
   def authorize_parent
-    if not @parent and not self.class.nested_resource_options[:auth][:options][:shallow]
-      raise ParameterMissing.new('parent resource not found')
-    end
-    if @parent
-      authorize_resource(@parent, :read)
+    self.class.nested_resource_options[:auth].each do |group|
+      group[:resources].each do |name|
+        parent = instance_variable_get("@#{name}")
+        if not parent and group[:required]
+          raise ParameterMissing.new('parent resource not found')
+        end
+        if parent
+          authorize_resource(parent, :read)
+        end
+      end
     end
   end
 
@@ -268,9 +311,9 @@ module LoadAndAuthorizeResource
   end
 
   # Verify this shallow route is allowed, otherwise raise an exception.
-  def verify_shallow_route!
-    return if self.class.nested_resource_options[:load][:options][:shallow]
-    expected = self.class.nested_resource_options[:load][:resources].map { |n| ":#{n}_id" }
+  def verify_shallow_route!(group)
+    return unless group[:required]
+    expected = group[:resources].map { |n| ":#{n}_id" }
     raise ParameterMissing.new(
       "must supply one of #{expected.join(', ')}"
     )
