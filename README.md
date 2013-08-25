@@ -136,9 +136,21 @@ For parent resources, `current_user.can_read?(@parent)` is consulted. If false, 
 
 If none of the parent IDs are present, e.g. `person_id` and `group_id` are both absent in `params`, then a `LoadAndAuthorizeResource::ParameterMissing` exception is raised.
 
+### Specifying Type of Authorization Required
+
+When authorizing a parent resource, you may wish to check a permission other than `:read`. If so, specify the `permit` option:
+
+```ruby
+class NotesController < ApplicationController
+  load_and_authorize_parent :person, permit: :edit
+end
+```
+
+Instead of asking `current_user.can_read?(person)`, LARR will ask `current_user.can_edit?(person)`.
+
 ### Shallow (Optional) Routes
 
-You can make the parent loading and authorization optional by making it `optional`:
+You can make the parent loading and authorization optional:
 
 ```ruby
 class NotesController < ApplicationController

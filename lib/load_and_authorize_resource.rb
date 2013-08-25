@@ -115,7 +115,7 @@ module LoadAndAuthorizeResource
     def load_parent(*names)
       options = names.extract_options!.dup
       required = !(options.delete(:shallow) || options.delete(:optional))
-      save_nested_resource_options(:load, names, required)
+      save_nested_resource_options(:load, names, required: required)
       define_scope_method(names, options.delete(:children))
       before_filter :load_parent, options
     end
@@ -138,13 +138,15 @@ module LoadAndAuthorizeResource
     #     end
     #
     # @option options [Boolean] :shallow set to true to allow non-nested routes, e.g. `/notes` in addition to `/people/1/notes`
+    # @option options [Boolean] :permit set to permission that should be consulted, e.g. :edit, :delete (defaults to :read)
     # @option options [Boolean] :except controller actions to ignore when applying this filter
     # @option options [Boolean] :only controller actions to apply this filter
     #
     def authorize_parent(*names)
       options = names.extract_options!.dup
       required = !(options.delete(:shallow) || options.delete(:optional))
-      save_nested_resource_options(:auth, names, required)
+      permit = options.delete(:permit) || :read
+      save_nested_resource_options(:auth, names, required: required, permit: permit)
       before_filter :authorize_parent, options
     end
 
@@ -239,10 +241,10 @@ module LoadAndAuthorizeResource
     end
 
     # Stores groups of names and options (required) on a class attribute on the controller
-    def save_nested_resource_options(key, names, required)
+    def save_nested_resource_options(key, names, options)
       self.nested_resource_options ||= {}
       self.nested_resource_options[key] ||= []
-      group = {resources: names, required: required}
+      group = options.merge(resources: names)
       self.nested_resource_options[key] << group
     end
   end
@@ -291,7 +293,7 @@ module LoadAndAuthorizeResource
           raise ParameterMissing.new('parent resource not found')
         end
         if parent
-          authorize_resource(parent, :read)
+          authorize_resource(parent, group[:permit])
         end
       end
     end

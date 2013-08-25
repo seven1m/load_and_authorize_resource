@@ -178,52 +178,77 @@ describe NotesController, type: :controller do
   end
 
   context 'authorize parent' do
-    controller do
-      before_filter :get_group
-      authorize_parent :group
+    context 'with no options' do
+      controller do
+        before_filter :get_group
+        authorize_parent :group
 
-      def get_group
+        def get_group
+        end
+      end
+
+      context 'when called with the parent id' do
+        context 'parent not found' do
+          it 'raises a missing parameter exception' do
+            expect {
+              get :index, group_id: @group.id
+            }.to raise_error(LoadAndAuthorizeResource::ParameterMissing)
+          end
+        end
+
+        context 'parent found and user not authorized' do
+          before do
+            group = double('group')
+            controller.define_singleton_method(:get_group) { @group = group }
+            user = double('user', can_read?: false)
+            controller.define_singleton_method(:current_user) { user }
+          end
+
+          it 'raises an unauthorized exception' do
+            expect {
+              get :index
+            }.to raise_error(LoadAndAuthorizeResource::AccessDenied)
+          end
+        end
+
+        context 'parent found and user is authorized' do
+          before do
+            group = double('group')
+            controller.define_singleton_method(:get_group) { @group = group }
+            user = double('user', can_read?: true)
+            controller.define_singleton_method(:current_user) { user }
+            get :index
+          end
+
+          it 'does nothing' do
+            expect(response).to be_success
+          end
+        end
       end
     end
 
-    context 'when called with the parent id' do
-      context 'parent not found' do
-        it 'raises a missing parameter exception' do
-          expect {
-            get :index, group_id: @group.id
-          }.to raise_error(LoadAndAuthorizeResource::ParameterMissing)
+    context 'with permit option set to :edit' do
+      controller do
+        before_filter :get_group
+        authorize_parent :group, permit: :edit
+
+        def get_group
         end
       end
 
-      context 'parent found and user not authorized' do
-        before do
-          group = double('group')
-          controller.define_singleton_method(:get_group) { @group = group }
-          user = double('user', can_read?: false)
-          controller.define_singleton_method(:current_user) { user }
-        end
+      context 'when called with the parent id' do
+        context 'parent found' do
+          before do
+            @group = group = double('group')
+            controller.define_singleton_method(:get_group) { @group = group }
+            @user = user = double('user', can_edit?: true)
+            controller.define_singleton_method(:current_user) { user }
+            get :edit, {id: 1}
+          end
 
-        it 'raises an unauthorized exception' do
-          expect {
-            get :index
-          }.to raise_error(LoadAndAuthorizeResource::AccessDenied)
-        end
-      end
-
-      context 'parent found and user is authorized' do
-        before do
-          group = double('group')
-          controller.define_singleton_method(:get_group) { @group = group }
-          user = double('user', can_read?: true)
-          controller.define_singleton_method(:current_user) { user }
-        end
-
-        setup do
-          get :index
-        end
-
-        it 'does nothing' do
-          expect(response).to be_success
+          it 'calls can_edit?' do
+            expect(@user).to have_received(:can_edit?).with(@group)
+          end
         end
       end
     end
