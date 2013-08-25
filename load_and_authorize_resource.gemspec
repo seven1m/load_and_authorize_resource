@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name         = "load_and_authorize_resource"
-  s.version      = "0.2.0"
+  s.version      = "0.3.0"
   s.author       = "Tim Morgan"
   s.email        = "tim@timmorgan.org"
   s.homepage     = "https://github.com/seven1m/load_and_authorize_resource"
