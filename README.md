@@ -146,7 +146,7 @@ class NotesController < ApplicationController
 end
 ```
 
-Instead of asking `current_user.can_read?(person)`, LARR will ask `current_user.can_edit?(person)`.
+Instead of asking `current_user.can_read?(person)`, LAAR will ask `current_user.can_edit?(person)`.
 
 ### Shallow (Optional) Routes
 
