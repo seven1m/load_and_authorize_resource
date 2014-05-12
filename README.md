@@ -111,9 +111,9 @@ class NotesController < ApplicationController
 
   def notes
     if @person
-      @person.notes.scoped
+      @person.notes
     elsif !required(:parent)
-      Note.scoped
+      Note.all
     end
   end
 end

@@ -7,9 +7,9 @@ class Note; end
 describe NotesController, type: :controller do
 
   before do
-    @relation = double('relation', scoped: nil)
+    @relation = double('relation', all: nil)
     @note = double('note', id: 1)
-    Note.stub(:scoped).and_return(@relation)
+    Note.stub(:all).and_return(@relation)
   end
 
   context 'load resource' do

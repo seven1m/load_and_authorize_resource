@@ -88,9 +88,9 @@ module LoadAndAuthorizeResource
     #
     #       def notes
     #         if @person
-    #           @person.notes.scoped
+    #           @person.notes.all
     #         elsif not required(:person)
-    #           Note.scoped
+    #           Note.all
     #         end
     #       end
     #     end
@@ -103,7 +103,7 @@ module LoadAndAuthorizeResource
     #     end
     #
     # This will create a private method called "people" that either returns
-    # `@group.people.scoped` or Person.scoped (only if @group is optional).
+    # `@group.people.all` or Person.all (only if @group is optional).
     #
     # @param names [Array<String, Symbol>] one or more names of resources in lower case
     # @option options [Boolean] :optional set to true to allow non-nested routes, e.g. `/notes` in addition to `/people/1/notes`
@@ -221,7 +221,7 @@ module LoadAndAuthorizeResource
     protected
 
     # Defines a method with the same name as the resource (`notes` for the NotesController)
-    # that returns a scoped relation, either @parent.notes, or Note itself.
+    # that returns a relation, either @parent.notes, or Note itself.
     def define_scope_method(parents, name=nil)
       name ||= resource_accessor_name
       self.nested_resource_options ||= {}
@@ -231,10 +231,10 @@ module LoadAndAuthorizeResource
         define_method(name) do
           parents.each do |parent|
             if resource = instance_variable_get("@#{parent}")
-              return resource.send(name).scoped
+              return resource.send(name)
             end
           end
-          name.to_s.classify.constantize.scoped
+          name.to_s.classify.constantize.all
         end
         private(name)
       end

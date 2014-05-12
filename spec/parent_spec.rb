@@ -7,8 +7,8 @@ class Note; end
 describe NotesController, type: :controller do
 
   before do
-    @relation = double('relation', scoped: 'scoped relation')
-    Note.stub(:scoped).and_return(@relation)
+    @relation = double('relation', all: 'relation')
+    Note.stub(:all).and_return(@relation)
     @group = double('group', id: 1, notes: @relation, people: @relation)
     Group.stub(:find).and_return(@group)
     @person = double('person', id: 1, notes: @relation)
@@ -34,8 +34,8 @@ describe NotesController, type: :controller do
         expect(@group).to have_received(:notes)
         # AR internals here, yikes
         # TODO need an adapter for different ORMs
-        expect(@relation).to have_received(:scoped)
-        expect(result).to eq('scoped relation')
+        expect(@relation).to have_received(:all)
+        expect(result).to eq('relation')
       end
     end
 
@@ -89,7 +89,7 @@ describe NotesController, type: :controller do
 
       it 'defines a child accessor' do
         @controller.send(:notes)
-        expect(Note).to have_received(:scoped)
+        expect(Note).to have_received(:all)
       end
     end
   end
@@ -111,7 +111,7 @@ describe NotesController, type: :controller do
 
       it 'defines a child accessor' do
         @controller.send(:notes)
-        expect(Note).to have_received(:scoped)
+        expect(Note).to have_received(:all)
       end
     end
   end
