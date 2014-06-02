@@ -1,6 +1,6 @@
 # Load And Authorize Resource
 
-Auto-loads and authorizes resources in Rails 3 and up.
+Auto-loads and authorizes resources in your resource controllers
 
 This was inspired heavily by functionality in the [CanCan](https://github.com/ryanb/cancan) gem, but built to work mostly independent of any authorization library.
 
