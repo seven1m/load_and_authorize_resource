@@ -19,7 +19,7 @@ This library assumes your app follows some (fairly common) conventions:
 1. Your controller name matches your model name, e.g. "NotesController" for the "Note" model.
 2. You have a method on your (Application)Controller called `current_user` that returns your User model.
 3. Your User model has methods like `can_read?`, `can_update?`, `can_delete?`, etc. (This works great with [Authority](https://github.com/nathanl/authority) gem, but naturally can work with any authorization library, given you/it defines those methods.)
-4. You have a method on your controller that returns the resource parameters, e.g. `note_params`. You're probably already doing this if you're using [StrongParameters](https://github.com/rails/strong_parameters) or Rails 4.
+4. You have a method on your controller that returns the resource parameters, e.g. `note_params`.
 
 ## Installing
 
