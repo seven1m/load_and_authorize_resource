@@ -1,6 +1,16 @@
 # Load And Authorize Resource
 
-Auto-loads and authorizes resources in your resource controllers
+Auto-loads and authorizes resources in your resource controllers so you can do this:
+
+```ruby
+class NotesController < ApplicationController
+  load_and_authorize_resource
+
+  def show
+    # @note is already loaded and the current_user has authority to view it
+  end
+end
+```
 
 This was inspired heavily by functionality in the [CanCan](https://github.com/ryanb/cancan) gem, but built to work mostly independent of any authorization library.
 
