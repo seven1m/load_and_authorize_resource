@@ -55,7 +55,7 @@ describe NotesController, type: :controller do
 
   context 'authorize resource' do
     controller do
-      before_filter :get_note
+      before_action :get_note
       authorize_resource
     end
 

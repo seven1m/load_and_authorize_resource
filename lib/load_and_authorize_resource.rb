@@ -117,7 +117,7 @@ module LoadAndAuthorizeResource
       required = !(options.delete(:shallow) || options.delete(:optional))
       save_nested_resource_options(:load, names, required: required)
       define_scope_method(names, options.delete(:children))
-      before_filter :load_parent, options
+      before_action :load_parent, options
     end
 
     # Macro sets a before filter to authorize the parent resource.
@@ -147,7 +147,7 @@ module LoadAndAuthorizeResource
       required = !(options.delete(:shallow) || options.delete(:optional))
       permit = options.delete(:permit) || :read
       save_nested_resource_options(:auth, names, required: required, permit: permit)
-      before_filter :authorize_parent, options
+      before_action :authorize_parent, options
     end
 
     # A convenience method for calling both `load_parent` and `authorize_parent`
@@ -178,7 +178,7 @@ module LoadAndAuthorizeResource
         options.reverse_merge!(only: [:show, :new, :create, :edit, :update, :destroy])
       end
       define_scope_method([], options.delete(:children))
-      before_filter :load_resource, options
+      before_action :load_resource, options
     end
 
     # Checks authorization on the already-loaded resource.
@@ -193,7 +193,7 @@ module LoadAndAuthorizeResource
       unless options[:only] or options[:except]
         options.reverse_merge!(only: [:show, :new, :create, :edit, :update, :destroy])
       end
-      before_filter :authorize_resource, options
+      before_action :authorize_resource, options
     end
 
     # A convenience method for calling both `load_resource` and `authorize_resource`

@@ -180,7 +180,7 @@ describe NotesController, type: :controller do
   context 'authorize parent' do
     context 'with no options' do
       controller do
-        before_filter :get_group
+        before_action :get_group
         authorize_parent :group
 
         def get_group
@@ -229,7 +229,7 @@ describe NotesController, type: :controller do
 
     context 'with permit option set to :edit' do
       controller do
-        before_filter :get_group
+        before_action :get_group
         authorize_parent :group, permit: :edit
 
         def get_group

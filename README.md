@@ -74,7 +74,7 @@ For each controller action, `current_user.can_<action>?(@note)` is consulted. If
 
 This works very nicely along with the [Authority](https://github.com/nathanl/authority) gem.
 
-If you don't wish to authorize, or if you wish to do the loading yourself, you can just call `load_resource` and/or `authorize_resource`. Also, each macro accepts the normal before_filter options such as `:only` and `:except` if you wish to only apply the filters to certain actions.
+If you don't wish to authorize, or if you wish to do the loading yourself, you can just call `load_resource` and/or `authorize_resource`. Also, each macro accepts the normal before_action options such as `:only` and `:except` if you wish to only apply the filters to certain actions.
 
 ## Loading and Authorizing the Parent Resource
 
@@ -108,7 +108,7 @@ class NotesController < ApplicationController
 end
 ```
 
-If you don't wish to authorize, or if you wish to do the loading yourself, you can just call `load_parent` and/or `authorize_parent`. Also, each macro accepts the normal before_filter options such as `:only` and `:except` if you wish to only apply the filters to certain actions.
+If you don't wish to authorize, or if you wish to do the loading yourself, you can just call `load_parent` and/or `authorize_parent`. Also, each macro accepts the normal before_action options such as `:only` and `:except` if you wish to only apply the filters to certain actions.
 
 ### Accessing Children
 
